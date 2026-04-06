@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>VLESS Мониторинг</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🔗 VLESS Мониторинг</h1>
+            <p>Мониторинг работоспособности VLESS конфигураций</p>
+        </header>
+
+        <main>
+            <!-- Форма добавления конфига -->
+            <section class="add-config">
+                <h2>Добавить конфигурацию</h2>
+                <form id="addConfigForm">
+                    <div class="form-group">
+                        <label for="vlessUrl">VLESS ссылка:</label>
+                        <textarea 
+                            id="vlessUrl" 
+                            placeholder="vless://uuid@ip:port?type=tcp&encryption=none&security=reality&pbk=...#name"
+                            required
+                        ></textarea>
+                    </div>
+                    <button type="submit">Добавить конфиг</button>
+                </form>
+            </section>
+
+            <!-- Настройки мониторинга -->
+            <section class="settings">
+                <h2>Настройки мониторинга</h2>
+                <div class="settings-grid">
+                    <div class="form-group">
+                        <label for="checkInterval">Интервал проверки (минуты):</label>
+                        <input type="number" id="checkInterval" min="1" max="60" value="10">
+                    </div>
+                    <div class="form-group">
+                        <label for="autoCheck">
+                            <input type="checkbox" id="autoCheck" checked>
+                            Автоматическая проверка
+                        </label>
+                    </div>
+                    <div class="form-group">
+                        <label for="use3XUI">
+                            <input type="checkbox" id="use3XUI">
+                            Использовать 3X UI API
+                        </label>
+                    </div>
+                </div>
+                
+                <!-- Настройки 3X UI API -->
+                <div id="xuiSettings" style="display: none;">
+                    <h3>3X UI API настройки</h3>
+                    <div class="settings-grid">
+                        <div class="form-group">
+                            <label for="xuiUrl">URL 3X UI панели:</label>
+                            <input type="text" id="xuiUrl" placeholder="http://your-server:20580">
+                        </div>
+                        <div class="form-group">
+                            <label for="xuiUsername">Имя пользователя:</label>
+                            <input type="text" id="xuiUsername" value="admin">
+                        </div>
+                        <div class="form-group">
+                            <label for="xuiPassword">Пароль:</label>
+                            <input type="password" id="xuiPassword" placeholder="Пароль от 3X UI">
+                        </div>
+                    </div>
+                </div>
+                
+                <button id="saveSettings">Сохранить настройки</button>
+            </section>
+
+            <!-- Статистика -->
+            <section class="stats">
+                <div class="stat-card">
+                    <h3>Всего конфигов</h3>
+                    <span id="totalCount">0</span>
+                </div>
+                <div class="stat-card online">
+                    <h3>Работают</h3>
+                    <span id="onlineCount">0</span>
+                </div>
+                <div class="stat-card offline">
+                    <h3>Не работают</h3>
+                    <span id="offlineCount">0</span>
+                </div>
+            </section>
+
+            <!-- Таблица конфигов -->
+            <section class="configs-list">
+                <h2>Список конфигураций</h2>
+                <div class="table-container">
+                    <table id="configsTable">
+                        <thead>
+                            <tr>
+                                <th>Имя</th>
+                                <th>Сервер</th>
+                                <th>Порт</th>
+                                <th>Статус</th>
+                                <th>Последняя проверка</th>
+                                <th>Время отклика</th>
+                                <th>Действия</th>
+                            </tr>
+                        </thead>
+                        <tbody id="configsTableBody">
+                            <!-- Конфиги будут добавлены через JavaScript -->
+                        </tbody>
+                    </table>
+                    <div id="emptyState" class="empty-state">
+                        <p>Нет добавленных конфигураций</p>
+                        <p>Добавьте VLESS ссылку выше для начала мониторинга</p>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Кнопки управления -->
+            <section class="actions">
+                <button id="checkAllBtn" class="btn-primary">Проверить все</button>
+                <button id="clearAllBtn" class="btn-danger">Очистить все</button>
+                <button id="exportBtn" class="btn-secondary">Экспорт</button>
+                <button id="importBtn" class="btn-secondary">Импорт</button>
+            </section>
+        </main>
+
+        <!-- Модальное окно для импорта -->
+        <div id="importModal" class="modal">
+            <div class="modal-content">
+                <span class="close">&times;</span>
+                <h2>Импорт конфигов</h2>
+                <textarea id="importData" placeholder="Вставьте JSON данные конфигов"></textarea>
+                <button id="confirmImport">Импортировать</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
