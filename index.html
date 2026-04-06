@@ -3,140 +3,463 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>VLESS Мониторинг</title>
+    <title>VLESS Monitor with 3X UI Integration</title>
     <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 </head>
 <body>
-    <div class="container">
-        <header>
-            <h1>🔗 VLESS Мониторинг</h1>
-            <p>Мониторинг работоспособности VLESS конфигураций</p>
-        </header>
-
-        <main>
-            <!-- Форма добавления конфига -->
-            <section class="add-config">
-                <h2>Добавить конфигурацию</h2>
-                <form id="addConfigForm">
-                    <div class="form-group">
-                        <label for="vlessUrl">VLESS ссылка:</label>
-                        <textarea 
-                            id="vlessUrl" 
-                            placeholder="vless://uuid@ip:port?type=tcp&encryption=none&security=reality&pbk=...#name"
-                            required
-                        ></textarea>
-                    </div>
-                    <button type="submit">Добавить конфиг</button>
-                </form>
-            </section>
-
-            <!-- Настройки мониторинга -->
-            <section class="settings">
-                <h2>Настройки мониторинга</h2>
-                <div class="settings-grid">
-                    <div class="form-group">
-                        <label for="checkInterval">Интервал проверки (минуты):</label>
-                        <input type="number" id="checkInterval" min="1" max="60" value="10">
-                    </div>
-                    <div class="form-group">
-                        <label for="autoCheck">
-                            <input type="checkbox" id="autoCheck" checked>
-                            Автоматическая проверка
-                        </label>
-                    </div>
-                    <div class="form-group">
-                        <label for="use3XUI">
-                            <input type="checkbox" id="use3XUI">
-                            Использовать 3X UI API
-                        </label>
-                    </div>
+    <header class="hero">
+        <div class="container">
+            <div class="hero-content">
+                <h1>🔗 VLESS Monitor</h1>
+                <p class="hero-subtitle">Продвинутый мониторинг VLESS конфигураций с интеграцией 3X UI</p>
+                <div class="hero-buttons">
+                    <a href="https://github.com/maaloznal/zsz" class="btn btn-primary">
+                        <i class="fab fa-github"></i> GitHub Repository
+                    </a>
+                    <a href="#demo" class="btn btn-secondary">
+                        <i class="fas fa-play"></i> Live Demo
+                    </a>
                 </div>
-                
-                <!-- Настройки 3X UI API -->
-                <div id="xuiSettings" style="display: none;">
-                    <h3>3X UI API настройки</h3>
-                    <div class="settings-grid">
-                        <div class="form-group">
-                            <label for="xuiUrl">URL 3X UI панели:</label>
-                            <input type="text" id="xuiUrl" placeholder="http://your-server:20580">
+            </div>
+            <div class="hero-image">
+                <div class="browser-mockup">
+                    <div class="browser-header">
+                        <div class="browser-dots">
+                            <span></span>
+                            <span></span>
+                            <span></span>
                         </div>
-                        <div class="form-group">
-                            <label for="xuiUsername">Имя пользователя:</label>
-                            <input type="text" id="xuiUsername" value="admin">
+                        <div class="browser-title">VLESS Monitor - localhost:5000</div>
+                    </div>
+                    <div class="browser-content">
+                        <div class="mock-stats">
+                            <div class="stat-card">Всего inbound: 3</div>
+                            <div class="stat-card">Активных: 2</div>
+                            <div class="stat-card">Клиентов: 12</div>
                         </div>
-                        <div class="form-group">
-                            <label for="xuiPassword">Пароль:</label>
-                            <input type="password" id="xuiPassword" placeholder="Пароль от 3X UI">
+                        <div class="mock-table">
+                            <div class="table-row">
+                                <span class="status online"></span>
+                                <span>dastamlf</span>
+                                <span>31.59.106.240:19007</span>
+                                <span>5 клиентов</span>
+                            </div>
+                            <div class="table-row">
+                                <span class="status online"></span>
+                                <span>openwrt_01</span>
+                                <span>31.59.106.240:19007</span>
+                                <span>7 клиентов</span>
+                            </div>
                         </div>
                     </div>
                 </div>
-                
-                <button id="saveSettings">Сохранить настройки</button>
-            </section>
-
-            <!-- Статистика -->
-            <section class="stats">
-                <div class="stat-card">
-                    <h3>Всего конфигов</h3>
-                    <span id="totalCount">0</span>
-                </div>
-                <div class="stat-card online">
-                    <h3>Работают</h3>
-                    <span id="onlineCount">0</span>
-                </div>
-                <div class="stat-card offline">
-                    <h3>Не работают</h3>
-                    <span id="offlineCount">0</span>
-                </div>
-            </section>
-
-            <!-- Таблица конфигов -->
-            <section class="configs-list">
-                <h2>Список конфигураций</h2>
-                <div class="table-container">
-                    <table id="configsTable">
-                        <thead>
-                            <tr>
-                                <th>Имя</th>
-                                <th>Сервер</th>
-                                <th>Порт</th>
-                                <th>Статус</th>
-                                <th>Последняя проверка</th>
-                                <th>Время отклика</th>
-                                <th>Действия</th>
-                            </tr>
-                        </thead>
-                        <tbody id="configsTableBody">
-                            <!-- Конфиги будут добавлены через JavaScript -->
-                        </tbody>
-                    </table>
-                    <div id="emptyState" class="empty-state">
-                        <p>Нет добавленных конфигураций</p>
-                        <p>Добавьте VLESS ссылку выше для начала мониторинга</p>
-                    </div>
-                </div>
-            </section>
-
-            <!-- Кнопки управления -->
-            <section class="actions">
-                <button id="checkAllBtn" class="btn-primary">Проверить все</button>
-                <button id="clearAllBtn" class="btn-danger">Очистить все</button>
-                <button id="exportBtn" class="btn-secondary">Экспорт</button>
-                <button id="importBtn" class="btn-secondary">Импорт</button>
-            </section>
-        </main>
-
-        <!-- Модальное окно для импорта -->
-        <div id="importModal" class="modal">
-            <div class="modal-content">
-                <span class="close">&times;</span>
-                <h2>Импорт конфигов</h2>
-                <textarea id="importData" placeholder="Вставьте JSON данные конфигов"></textarea>
-                <button id="confirmImport">Импортировать</button>
             </div>
         </div>
-    </div>
+    </header>
 
-    <script src="script.js"></script>
+    <main>
+        <!-- Features Section -->
+        <section class="features">
+            <div class="container">
+                <h2>✨ Возможности</h2>
+                <div class="features-grid">
+                    <div class="feature-card">
+                        <div class="feature-icon">
+                            <i class="fas fa-bullseye"></i>
+                        </div>
+                        <h3>Точная проверка статуса</h3>
+                        <p>Интеграция с 3X UI API для получения реальных данных о работоспособности конфигов</p>
+                    </div>
+                    <div class="feature-card">
+                        <div class="feature-icon">
+                            <i class="fas fa-chart-line"></i>
+                        </div>
+                        <h3>Реальная статистика</h3>
+                        <p>Количество клиентов, трафик, статус inbound'ов в реальном времени</p>
+                    </div>
+                    <div class="feature-card">
+                        <div class="feature-icon">
+                            <i class="fas fa-sync"></i>
+                        </div>
+                        <h3>Автообновление</h3>
+                        <p>Настраиваемый интервал проверки от 5 до 120 минут</p>
+                    </div>
+                    <div class="feature-card">
+                        <div class="feature-icon">
+                            <i class="fas fa-mobile-alt"></i>
+                        </div>
+                        <h3>Адаптивный дизайн</h3>
+                        <p>Работает на всех устройствах - десктоп, планшет, мобильный</p>
+                    </div>
+                    <div class="feature-card">
+                        <div class="feature-icon">
+                            <i class="fas fa-shield-alt"></i>
+                        </div>
+                        <h3>Безопасность</h3>
+                        <p>Учетные данные хранятся только на сервере, HTTPS соединения</p>
+                    </div>
+                    <div class="feature-card">
+                        <div class="feature-icon">
+                            <i class="fas fa-rocket"></i>
+                        </div>
+                        <h3>Быстрый запуск</h3>
+                        <p>Развертывание за 5 минут на любом VPS с Node.js</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Architecture Section -->
+        <section class="architecture">
+            <div class="container">
+                <h2>🏗️ Архитектура</h2>
+                <div class="architecture-diagram">
+                    <div class="arch-box frontend">
+                        <i class="fas fa-globe"></i>
+                        <h4>Веб-интерфейс</h4>
+                        <p>monitor.html</p>
+                    </div>
+                    <div class="arch-arrow">→</div>
+                    <div class="arch-box backend">
+                        <i class="fas fa-server"></i>
+                        <h4>Node.js Сервер</h4>
+                        <p>server.js</p>
+                    </div>
+                    <div class="arch-arrow">→</div>
+                    <div class="arch-box xui">
+                        <i class="fas fa-cogs"></i>
+                        <h4>3X UI Панель</h4>
+                        <p>xui-manager.mjs</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Quick Start Section -->
+        <section class="quick-start">
+            <div class="container">
+                <h2>🚀 Быстрый старт</h2>
+                <div class="start-steps">
+                    <div class="step">
+                        <div class="step-number">1</div>
+                        <div class="step-content">
+                            <h3>Клонируйте репозиторий</h3>
+                            <pre><code>git clone https://github.com/maaloznal/zsz.git
+cd zsz</code></pre>
+                        </div>
+                    </div>
+                    <div class="step">
+                        <div class="step-number">2</div>
+                        <div class="step-content">
+                            <h3>Установите зависимости</h3>
+                            <pre><code>npm install</code></pre>
+                        </div>
+                    </div>
+                    <div class="step">
+                        <div class="step-number">3</div>
+                        <div class="step-content">
+                            <h3>Настройте 3X UI</h3>
+                            <p>Отредактируйте <code>xui-manager.mjs</code> с вашими данными доступа</p>
+                        </div>
+                    </div>
+                    <div class="step">
+                        <div class="step-number">4</div>
+                        <div class="step-content">
+                            <h3>Запустите сервер</h3>
+                            <pre><code>npm start
+# или
+./start.sh  # Linux/Mac
+start.bat    # Windows</code></pre>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Demo Section -->
+        <section id="demo" class="demo">
+            <div class="container">
+                <h2>🎬 Демонстрация</h2>
+                <div class="demo-content">
+                    <div class="demo-info">
+                        <h3>Как это работает?</h3>
+                        <p>VLESS Monitor использует прямое подключение к вашей 3X UI панели для получения реальной статистики о VLESS конфигурациях.</p>
+                        
+                        <div class="demo-features">
+                            <div class="demo-feature">
+                                <i class="fas fa-check-circle text-success"></i>
+                                <span>Реальное количество клиентов</span>
+                            </div>
+                            <div class="demo-feature">
+                                <i class="fas fa-check-circle text-success"></i>
+                                <span>Статус inbound'ов</span>
+                            </div>
+                            <div class="demo-feature">
+                                <i class="fas fa-check-circle text-success"></i>
+                                <span>Автоматическая проверка</span>
+                            </div>
+                            <div class="demo-feature">
+                                <i class="fas fa-check-circle text-success"></i>
+                                <span>Мгновенные уведомления</span>
+                            </div>
+                        </div>
+
+                        <div class="alert alert-info">
+                            <i class="fas fa-info-circle"></i>
+                            <div>
+                                <strong>Важно:</strong> Для полноценной работы требуется Node.js сервер. 
+                                Эта страница - демонстрация интерфейса и документация.
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="demo-visual">
+                        <div class="demo-mockup">
+                            <div class="mock-header">
+                                <h4>VLESS Monitor Dashboard</h4>
+                                <div class="mock-status connected">
+                                    <span class="status-dot"></span>
+                                    Подключено к 3X UI
+                                </div>
+                            </div>
+                            <div class="mock-stats-grid">
+                                <div class="mock-stat">
+                                    <div class="mock-number">3</div>
+                                    <div class="mock-label">Всего inbound</div>
+                                </div>
+                                <div class="mock-stat">
+                                    <div class="mock-number">2</div>
+                                    <div class="mock-label">Активных</div>
+                                </div>
+                                <div class="mock-stat">
+                                    <div class="mock-number">12</div>
+                                    <div class="mock-label">Клиентов</div>
+                                </div>
+                            </div>
+                            <div class="mock-configs">
+                                <div class="mock-config">
+                                    <span class="mock-status online"></span>
+                                    <span class="mock-name">dastamlf</span>
+                                    <span class="mock-info">5 клиентов</span>
+                                </div>
+                                <div class="mock-config">
+                                    <span class="mock-status online"></span>
+                                    <span class="mock-name">openwrt_01</span>
+                                    <span class="mock-info">7 клиентов</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Installation Section -->
+        <section class="installation">
+            <div class="container">
+                <h2>🛠️ Установка и развертывание</h2>
+                <div class="install-tabs">
+                    <div class="tab-buttons">
+                        <button class="tab-btn active" onclick="showTab('local')">Локальная установка</button>
+                        <button class="tab-btn" onclick="showTab('vps')">VPS развертывание</button>
+                        <button class="tab-btn" onclick="showTab('docker')">Docker</button>
+                    </div>
+                    
+                    <div class="tab-content">
+                        <div id="local" class="tab-pane active">
+                            <h3>🏠 Локальный запуск</h3>
+                            <pre><code># Требования: Node.js 14+
+git clone https://github.com/maaloznal/zsz.git
+cd zsz
+npm install
+npm start</code></pre>
+                            <p>Откройте <a href="http://localhost:5000">http://localhost:5000</a> в браузере</p>
+                        </div>
+                        
+                        <div id="vps" class="tab-pane">
+                            <h3>🌐 Развертывание на VPS</h3>
+                            <pre><code># Подключитесь к VPS
+ssh root@your-vps-ip
+
+# Установите Node.js
+curl -fsSL https://deb.nodesource.com/setup_18.x | sudo -E bash -
+sudo apt-get install -y nodejs
+
+# Скачайте и запустите
+git clone https://github.com/maaloznal/zsz.git
+cd zsz
+npm install
+npm install -g pm2
+pm2 start server.js --name vless-monitor
+pm2 startup
+pm2 save</code></pre>
+                        </div>
+                        
+                        <div id="docker" class="tab-pane">
+                            <h3>🐳 Docker развертывание</h3>
+                            <pre><code># Создайте Dockerfile
+FROM node:18-alpine
+WORKDIR /app
+COPY package*.json ./
+RUN npm ci --only=production
+COPY . .
+EXPOSE 5000
+CMD ["npm", "start"]
+
+# Соберите и запустите
+docker build -t vless-monitor .
+docker run -d -p 5000:5000 --name vless-monitor vless-monitor</code></pre>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Comparison Section -->
+        <section class="comparison">
+            <div class="container">
+                <h2>📈 Сравнение с другими решениями</h2>
+                <div class="comparison-table">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Характеристика</th>
+                                <th>TCP Ping</th>
+                                <th>Базовый монитор</th>
+                                <th class="highlight">VLESS Monitor</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>🎯 Точность проверки</td>
+                                <td>❌ Низкая</td>
+                                <td>⚠️ Средняя</td>
+                                <td class="highlight">✅ Высокая</td>
+                            </tr>
+                            <tr>
+                                <td>📊 Реальная статистика</td>
+                                <td>❌ Нет</td>
+                                <td>⚠️ Базовая</td>
+                                <td class="highlight">✅ Полная</td>
+                            </tr>
+                            <tr>
+                                <td>🔄 Автообновление</td>
+                                <td>❌ Нет</td>
+                                <td>✅ Есть</td>
+                                <td class="highlight">✅ Настраиваемое</td>
+                            </tr>
+                            <tr>
+                                <td>🛡️ Безопасность</td>
+                                <td>⚠️ Средняя</td>
+                                <td>⚠️ Средняя</td>
+                                <td class="highlight">✅ Высокая</td>
+                            </tr>
+                            <tr>
+                                <td>📱 Мобильная поддержка</td>
+                                <td>❌ Нет</td>
+                                <td>⚠️ Базовая</td>
+                                <td class="highlight">✅ Полная</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+
+        <!-- CTA Section -->
+        <section class="cta">
+            <div class="container">
+                <h2>🚀 Готовы начать?</h2>
+                <p>Начните мониторить ваши VLESS конфигурации профессионально</p>
+                <div class="cta-buttons">
+                    <a href="https://github.com/maaloznal/zsz" class="btn btn-primary btn-large">
+                        <i class="fab fa-github"></i> Скачать с GitHub
+                    </a>
+                    <a href="https://github.com/maaloznal/zsz/issues" class="btn btn-secondary btn-large">
+                        <i class="fas fa-bug"></i> Сообщить о проблеме
+                    </a>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <footer>
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-section">
+                    <h4>VLESS Monitor</h4>
+                    <p>Профессиональный мониторинг VLESS конфигураций с интеграцией 3X UI</p>
+                </div>
+                <div class="footer-section">
+                    <h4>Ссылки</h4>
+                    <ul>
+                        <li><a href="https://github.com/maaloznal/zsz">GitHub Repository</a></li>
+                        <li><a href="https://github.com/maaloznal/zsz/issues">Issues</a></li>
+                        <li><a href="https://github.com/maaloznal/zsz/blob/master/README.md">Documentation</a></li>
+                    </ul>
+                </div>
+                <div class="footer-section">
+                    <h4>Лицензия</h4>
+                    <p>MIT License - свободное использование и распространение</p>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p>Made with ❤️ for VLESS community | &copy; 2024 VLESS Monitor</p>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        function showTab(tabName) {
+            // Hide all tabs
+            document.querySelectorAll('.tab-pane').forEach(pane => {
+                pane.classList.remove('active');
+            });
+            
+            // Remove active class from all buttons
+            document.querySelectorAll('.tab-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            
+            // Show selected tab
+            document.getElementById(tabName).classList.add('active');
+            
+            // Add active class to clicked button
+            event.target.classList.add('active');
+        }
+
+        // Smooth scrolling for anchor links
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                const target = document.querySelector(this.getAttribute('href'));
+                if (target) {
+                    target.scrollIntoView({
+                        behavior: 'smooth'
+                    });
+                }
+            });
+        });
+
+        // Add animation on scroll
+        const observerOptions = {
+            threshold: 0.1,
+            rootMargin: '0px 0px -50px 0px'
+        };
+
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('animate');
+                }
+            });
+        }, observerOptions);
+
+        // Observe feature cards
+        document.querySelectorAll('.feature-card').forEach(card => {
+            observer.observe(card);
+        });
+    </script>
 </body>
 </html>
