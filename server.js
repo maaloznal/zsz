@@ -138,11 +138,17 @@ app.post('/api/check', async (req, res) => {
         // Проверяем количество клиентов и статус
         const clientsCount = matchingInbound.clientsCount || 0;
         const isEnabled = matchingInbound.enable !== false;
-        const hasActiveClients = clientsCount > 0;
-
+        
+        // Конфиг считается активным, если inbound включен (независимо от количества клиентов)
+        // 0 клиентов не означает, что конфиг не работает - просто никто не подключен
+        const isAlive = isEnabled;
+        
+        // Дополнительная информация о трафике для определения реальной активности
+        const hasTraffic = (matchingInbound.up > 0 || matchingInbound.down > 0);
+        
         res.json({
             ok: true,
-            alive: isEnabled && hasActiveClients,
+            alive: isAlive,
             host: parsed.host,
             port: parsed.port,
             name: parsed.name,
@@ -151,11 +157,14 @@ app.post('/api/check', async (req, res) => {
                 tag: matchingInbound.tag,
                 protocol: matchingInbound.protocol,
                 enabled: isEnabled,
-                clients: clientsCount
+                clients: clientsCount,
+                up: matchingInbound.up || 0,
+                down: matchingInbound.down || 0,
+                hasTraffic: hasTraffic
             },
-            reason: isEnabled ? 
-                (hasActiveClients ? 'Active with clients' : 'No active clients') : 
-                'Inbound disabled'
+            reason: !isEnabled ? 'Inbound disabled' : 
+                    (hasTraffic ? 'Active with traffic' : 
+                     (clientsCount > 0 ? `Active with ${clientsCount} clients` : 'Active (no current connections)'))
         });
 
     } catch (error) {

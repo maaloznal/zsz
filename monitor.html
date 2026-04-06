@@ -157,6 +157,17 @@
             color: #6b7280; 
             margin-top: 0.25rem; 
         }
+        .traffic-info { 
+            font-size: 0.75rem; 
+            color: #059669; 
+            margin-top: 0.25rem; 
+            font-family: monospace;
+        }
+        .badge.disabled {
+            background: #fca5a5;
+            color: #991b1b;
+            margin-left: 0.25rem;
+        }
         .server-status {
             position: fixed;
             top: 20px;
@@ -492,14 +503,19 @@
                     <td>
                         <div class="status-badge ${cfg.lastStatus === true ? 'status-alive' : cfg.lastStatus === false ? 'status-dead' : ''}">
                             ${cfg.lastStatus === undefined ? '⏳ не проверялся' :
-                              cfg.lastStatus === true ? '<span class="status-indicator"></span>🟢 Работает' :
-                              '<span class="status-indicator"></span>🔴 Не работает'}
+                              cfg.lastStatus === true ? '<span class="status-indicator"></span>🟢 Активен' :
+                              '<span class="status-indicator"></span>🔴 Неактивен'}
                         </div>
                         ${cfg.reason ? `<div class="clients-info">${cfg.reason}</div>` : ''}
+                        ${cfg.inboundInfo && cfg.inboundInfo.hasTraffic ? 
+                            `<div class="traffic-info">⬆️ ${formatBytes(cfg.inboundInfo.up)} ⬇️ ${formatBytes(cfg.inboundInfo.down)}</div>` : ''}
                     </td>
                     <td>
                         ${cfg.inboundInfo ? 
-                            `<span class="badge">${cfg.inboundInfo.clients} клиентов</span>` : 
+                            `<div>
+                                <span class="badge">${cfg.inboundInfo.clients} клиентов</span>
+                                ${cfg.inboundInfo.enabled ? '' : '<span class="badge disabled">Отключен</span>'}
+                            </div>` : 
                             '-'}
                     </td>
                     <td>
@@ -521,6 +537,14 @@
                 const map = {'&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'};
                 return map[m];
             });
+        }
+
+        function formatBytes(bytes) {
+            if (bytes === 0) return '0 B';
+            const k = 1024;
+            const sizes = ['B', 'KB', 'MB', 'GB', 'TB'];
+            const i = Math.floor(Math.log(bytes) / Math.log(k));
+            return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
         }
 
         function showNotification(message, type = 'info') {
