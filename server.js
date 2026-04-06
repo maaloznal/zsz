@@ -13,7 +13,7 @@ app.use(express.static('.'));
 
 // Хранилище для кэша результатов
 let cache = {
-    inbounds: null,
+    report: null,
     lastUpdate: null,
     updateInterval: 60000 // 1 минута
 };
@@ -46,26 +46,25 @@ async function getXUIStats() {
             }
 
             try {
-                // Пытаемся прочитать сгенерированный JSON файл
+                // Пытаемся прочитать сгенерированный JSON файл panel_report.json
                 const fs = require('fs');
-                if (fs.existsSync('inbounds_list.json')) {
-                    const data = JSON.parse(fs.readFileSync('inbounds_list.json', 'utf8'));
+                if (fs.existsSync('panel_report.json')) {
+                    const data = JSON.parse(fs.readFileSync('panel_report.json', 'utf8'));
                     resolve(data);
                 } else {
                     // Парсим stdout если JSON файл не создан
                     const lines = stdout.split('\n');
                     const result = {
                         timestamp: new Date().toISOString(),
-                        count: 0,
-                        inbounds: []
+                        summary: {
+                            totalInbounds: 0,
+                            totalClients: 0,
+                            onlineClients: 0,
+                            offlineClients: 0
+                        },
+                        inbounds: [],
+                        clients: []
                     };
-                    
-                    for (const line of lines) {
-                        if (line.includes('Найдено inbound:')) {
-                            result.count = parseInt(line.match(/\d+/)?.[0] || 0);
-                        }
-                    }
-                    
                     resolve(result);
                 }
             } catch (error) {
@@ -196,23 +195,19 @@ app.get('/api/inbounds', async (req, res) => {
 // Получение статистики
 app.get('/api/stats', async (req, res) => {
     try {
-        const stats = await getFreshStats();
-        
-        // Агрегируем статистику
-        const totalInbounds = stats.inbounds.length;
-        const activeInbounds = stats.inbounds.filter(inb => inb.enable !== false).length;
-        const totalClients = stats.inbounds.reduce((sum, inb) => sum + (inb.clientsCount || 0), 0);
+        const report = await getFreshStats();
         
         res.json({
             ok: true,
-            timestamp: stats.timestamp,
-            summary: {
-                totalInbounds,
-                activeInbounds,
-                totalClients,
-                lastUpdate: new Date().toISOString()
+            timestamp: report.timestamp,
+            summary: report.summary || {
+                totalInbounds: 0,
+                totalClients: 0,
+                onlineClients: 0,
+                offlineClients: 0
             },
-            inbounds: stats.inbounds
+            inbounds: report.inbounds || [],
+            clients: report.clients || []
         });
     } catch (error) {
         console.error('Stats error:', error);
@@ -247,20 +242,20 @@ async function getFreshStats() {
     const now = Date.now();
     
     // Проверяем кэш
-    if (cache.inbounds && cache.lastUpdate && (now - cache.lastUpdate) < cache.updateInterval) {
-        return cache.inbounds;
+    if (cache.report && cache.lastUpdate && (now - cache.lastUpdate) < cache.updateInterval) {
+        return cache.report;
     }
 
     try {
-        const stats = await getXUIStats();
-        cache.inbounds = stats;
+        const report = await getXUIStats();
+        cache.report = report;
         cache.lastUpdate = now;
-        return stats;
+        return report;
     } catch (error) {
         console.error('Failed to get fresh stats:', error);
         // Возвращаем кэшированные данные если есть
-        if (cache.inbounds) {
-            return cache.inbounds;
+        if (cache.report) {
+            return cache.report;
         }
         throw error;
     }

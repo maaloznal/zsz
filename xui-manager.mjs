@@ -9,23 +9,13 @@ const baseURL = "https://31.59.106.240:13404/OKZoKRqvzxvBDDw9QC";
 const username = "rolZvuA9Iq";
 const password = "TthJtGPEsY";
 
-// API endpoints
 const API = {
   login: "/login",
   inboundsList: "/panel/api/inbounds/list",
-  inboundAdd: "/panel/api/inbounds/add",
-  inboundUpdate: "/panel/api/inbounds/update",
-  inboundDelete: "/panel/api/inbounds/del",
-  clientAdd: "/panel/api/inbounds/addClient",
-  clientUpdate: "/panel/api/inbounds/updateClient",
-  clientDelete: "/panel/api/inbounds/delClient",
 };
 
 let client;
 
-// --------------------------------------------------------------
-// Аутентификация
-// --------------------------------------------------------------
 async function login() {
   const jar = new CookieJar();
   const cl = wrapper(axios.create({ jar, withCredentials: true, baseURL }));
@@ -36,9 +26,6 @@ async function login() {
   return cl;
 }
 
-// --------------------------------------------------------------
-// Получить все inbound
-// --------------------------------------------------------------
 async function getInbounds() {
   const res = await client.get(API.inboundsList);
   if (res.data?.success !== true)
@@ -46,181 +33,191 @@ async function getInbounds() {
   return res.data.obj;
 }
 
-// --------------------------------------------------------------
-// Добавить inbound (универсальный)
-// --------------------------------------------------------------
-async function addInbound(inboundConfig) {
-  const res = await client.post(API.inboundAdd, inboundConfig);
-  if (res.data?.success !== true)
-    throw new Error("Ошибка добавления inbound: " + JSON.stringify(res.data));
-  console.log(
-    `✅ Inbound "${inboundConfig.tag}" добавлен, ID: ${res.data.obj?.id}`,
-  );
-  await fs.writeFile(
-    "last_added_inbound.json",
-    JSON.stringify(res.data, null, 2),
-  );
-  return res.data;
-}
-
-// --------------------------------------------------------------
-// Добавить клиента в inbound
-// --------------------------------------------------------------
-async function addClient(inboundId, clientData) {
-  // Правильный payload для 3x-UI API
-  const payload = { id: inboundId, settings: { clients: [clientData] } };
-  const res = await client.post(API.clientAdd, payload);
-  if (res.data?.success !== true)
-    throw new Error("Ошибка добавления клиента: " + JSON.stringify(res.data));
-  console.log(`✅ Клиент ${clientData.email} добавлен в inbound ${inboundId}`);
-  await fs.writeFile(
-    "last_added_client.json",
-    JSON.stringify(res.data, null, 2),
-  );
-  return res.data;
-}
-
-// --------------------------------------------------------------
-// Сохранить список inbound в файл
-// --------------------------------------------------------------
-async function saveInboundsToFile(inbounds) {
-  const data = {
-    timestamp: new Date().toISOString(),
-    count: inbounds.length,
-    inbounds: inbounds.map((inb) => ({
-      id: inb.id,
-      tag: inb.tag,
-      port: inb.port,
-      protocol: inb.protocol,
-      enable: inb.enable,
-      clientsCount: inb.settings?.clients?.length || 0,
-    })),
-  };
-  await fs.writeFile("inbounds_list.json", JSON.stringify(data, null, 2));
-  console.log("💾 Список inbound сохранён в inbounds_list.json");
-}
-
-// --------------------------------------------------------------
-// Пример конфигурации для VLESS Reality
-// --------------------------------------------------------------
-function createRealityInbound(port, tag, sni, pbk, sid) {
-  return {
-    port,
-    protocol: "vless",
-    settings: {
-      clients: [],
-      decryption: "none",
-      fallbacks: [],
-    },
-    streamSettings: {
-      network: "tcp",
-      security: "reality",
-      realitySettings: {
-        dest: `${sni}:443`,
-        serverNames: [sni],
-        privateKey: "",
-        publicKey: pbk,
-        shortIds: [sid],
-        settings: {
-          publicKey: pbk,
-          shortId: sid,
-        },
-      },
-    },
-    tag,
-    sniffing: {
-      enabled: true,
-      destOverride: ["http", "tls"],
-    },
-  };
-}
-
-// --------------------------------------------------------------
-// Парсинг аргументов командной строки
-// --------------------------------------------------------------
-function parseArgs() {
-  const args = process.argv.slice(2);
-  const command = args[0];
-  const params = {};
-  for (let i = 1; i < args.length; i++) {
-    const [key, val] = args[i].split("=");
-    if (key && val) params[key] = val;
+function getClientStatus(lastOnline, currentTime = Date.now()) {
+  if (!lastOnline || lastOnline === 0) {
+    return { isOnline: false, statusText: "никогда не подключался" };
   }
-  return { command, params };
+  const fiveMinutesAgo = currentTime - 5 * 60 * 1000;
+  if (lastOnline > fiveMinutesAgo) {
+    const secondsAgo = Math.floor((currentTime - lastOnline) / 1000);
+    return { isOnline: true, statusText: `активен ${secondsAgo} сек назад` };
+  } else {
+    const date = new Date(lastOnline);
+    return {
+      isOnline: false,
+      statusText: `последний раз ${date.toLocaleString()}`,
+    };
+  }
 }
 
-// --------------------------------------------------------------
-// MAIN
-// --------------------------------------------------------------
-async function main() {
-  const { command, params } = parseArgs();
+async function getAllClientsWithStatus() {
+  const inbounds = await getInbounds();
+  const clients = [];
 
+  // Отладка: выведем структуру первого inbound
+  if (inbounds.length > 0) {
+    console.log("\n🔍 ОТЛАДКА: структура первого inbound (ключи):");
+    const first = inbounds[0];
+    console.log("  Ключи inbound:", Object.keys(first));
+    if (first.clientStats) {
+      console.log(
+        "  clientStats найден, количество записей:",
+        first.clientStats.length,
+      );
+      if (first.clientStats.length > 0) {
+        console.log(
+          "  Пример clientStats[0]:",
+          JSON.stringify(first.clientStats[0], null, 2),
+        );
+      }
+    } else {
+      console.log("  clientStats отсутствует в inbound");
+    }
+    if (first.settings) {
+      console.log("  Тип settings:", typeof first.settings);
+      if (typeof first.settings === "string") {
+        console.log(
+          "  settings (строка, первые 200 символов):",
+          first.settings.substring(0, 200),
+        );
+      } else {
+        console.log("  Ключи settings:", Object.keys(first.settings));
+      }
+    }
+    console.log("");
+  }
+
+  for (const inbound of inbounds) {
+    // Парсим settings (конфигурация клиентов)
+    let settings = inbound.settings;
+    if (typeof settings === "string") {
+      try {
+        settings = JSON.parse(settings);
+      } catch (e) {
+        console.error(
+          `Ошибка парсинга settings для inbound ${inbound.tag}:`,
+          e.message,
+        );
+        continue;
+      }
+    }
+
+    // Получаем массив клиентов из настроек (email, totalGB и т.д.)
+    const configClients = settings?.clients || [];
+
+    // Получаем статистику клиентов (up, down, lastOnline) из clientStats, если есть
+    const statsMap = new Map(); // email -> { up, down, lastOnline }
+    if (inbound.clientStats && Array.isArray(inbound.clientStats)) {
+      for (const stat of inbound.clientStats) {
+        if (stat.email) {
+          statsMap.set(stat.email, {
+            up: stat.up || 0,
+            down: stat.down || 0,
+            lastOnline: stat.lastOnline || 0,
+          });
+        }
+      }
+    }
+
+    // Объединяем данные
+    for (const c of configClients) {
+      const stats = statsMap.get(c.email) || { up: 0, down: 0, lastOnline: 0 };
+      const usedBytes = (stats.up || 0) + (stats.down || 0);
+      const usedGB = usedBytes / 1e9;
+      const totalBytes = c.totalGB || 0;
+      const status = getClientStatus(stats.lastOnline);
+
+      clients.push({
+        email: c.email,
+        inboundId: inbound.id,
+        inboundTag: inbound.tag,
+        protocol: inbound.protocol,
+        port: inbound.port,
+        enable: c.enable,
+        totalGB: totalBytes,
+        usedGB: usedGB,
+        usedBytes: usedBytes,
+        expiryTime: c.expiryTime,
+        lastOnline: stats.lastOnline,
+        isOnline: status.isOnline,
+        statusText: status.statusText,
+      });
+    }
+  }
+  return clients;
+}
+
+async function saveReport(clients, inbounds) {
+  const now = new Date().toISOString();
+  const onlineCount = clients.filter((c) => c.isOnline).length;
+  const totalTrafficUsed = clients
+    .reduce((sum, c) => sum + (c.usedGB || 0), 0)
+    .toFixed(2);
+  const report = {
+    timestamp: now,
+    summary: {
+      totalInbounds: inbounds.length,
+      totalClients: clients.length,
+      onlineClients: onlineCount,
+      offlineClients: clients.length - onlineCount,
+      totalTrafficUsedGB: totalTrafficUsed,
+    },
+    inbounds: inbounds.map((inb) => {
+      let clientsCount = 0;
+      let settings = inb.settings;
+      if (typeof settings === "string") {
+        try {
+          settings = JSON.parse(settings);
+        } catch (e) {}
+      }
+      if (settings?.clients) clientsCount = settings.clients.length;
+      return {
+        id: inb.id,
+        tag: inb.tag,
+        port: inb.port,
+        protocol: inb.protocol,
+        enable: inb.enable,
+        clientsCount: clientsCount,
+      };
+    }),
+    clients,
+  };
+  await fs.writeFile("panel_report.json", JSON.stringify(report, null, 2));
+  console.log("💾 Отчёт сохранён в panel_report.json");
+}
+
+function printSummary(clients, inbounds) {
+  console.log(`\n📊 СТАТИСТИКА ПАНЕЛИ`);
+  console.log(`   Всего inbound: ${inbounds.length}`);
+  console.log(`   Всего клиентов: ${clients.length}`);
+  const online = clients.filter((c) => c.isOnline).length;
+  console.log(`   🟢 Онлайн: ${online}`);
+  console.log(`   🔴 Офлайн: ${clients.length - online}`);
+  const totalTraffic = clients
+    .reduce((sum, c) => sum + (c.usedGB || 0), 0)
+    .toFixed(2);
+  console.log(`   📈 Общий использованный трафик: ${totalTraffic} ГБ\n`);
+
+  const sample = clients.slice(0, 10);
+  for (const c of sample) {
+    const statusIcon = c.isOnline ? "🟢" : "🔴";
+    const used = isNaN(c.usedGB) ? 0 : c.usedGB.toFixed(2);
+    console.log(
+      `${statusIcon} ${c.email} | ${c.protocol} | ${c.statusText} | использовано ${used} ГБ`,
+    );
+  }
+  if (clients.length > 10)
+    console.log(`   ... и ещё ${clients.length - 10} клиентов`);
+}
+
+async function main() {
   try {
     client = await login();
-
-    // Если нет команды – просто показываем список и сохраняем
-    if (!command) {
-      const inbounds = await getInbounds();
-      console.log(`\n📡 Найдено inbound: ${inbounds.length}`);
-      for (const inb of inbounds) {
-        console.log(`   - ${inb.tag} (порт ${inb.port}, ${inb.protocol})`);
-      }
-      await saveInboundsToFile(inbounds);
-      console.log("\n✅ Скрипт выполнен. Файл inbounds_list.json создан.");
-      return;
-    }
-
-    // Команда: add-inbound
-    if (command === "add-inbound") {
-      if (
-        !params.port ||
-        !params.tag ||
-        !params.sni ||
-        !params.pbk ||
-        !params.sid
-      ) {
-        console.error(
-          "❌ Использование: node xui-manager.mjs add-inbound port=20001 tag=myTag sni=yahoo.com pbk=ВАШ_PUBLIC_KEY sid=6ba85179e30d",
-        );
-        return;
-      }
-      const newInbound = createRealityInbound(
-        parseInt(params.port),
-        params.tag,
-        params.sni,
-        params.pbk,
-        params.sid,
-      );
-      await addInbound(newInbound);
-      return;
-    }
-
-    // Команда: add-client
-    if (command === "add-client") {
-      if (!params.inboundId || !params.email) {
-        console.error(
-          "❌ Использование: node xui-manager.mjs add-client inboundId=1 email=user@example.com totalGB=50 expiryDays=30",
-        );
-        return;
-      }
-      const clientData = {
-        email: params.email,
-        flow: "",
-        enable: true,
-        limitIp: 0,
-        totalGB: (params.totalGB ? parseInt(params.totalGB) : 50) * 1024 ** 3,
-        expiryTime:
-          Date.now() +
-          (params.expiryDays ? parseInt(params.expiryDays) : 30) * 86400000,
-      };
-      await addClient(parseInt(params.inboundId), clientData);
-      return;
-    }
-
-    console.error(`❌ Неизвестная команда: ${command}`);
-    console.log(
-      "Доступные команды:\n  (без аргументов) - показать список inbound и сохранить в JSON\n  add-inbound ... - добавить inbound\n  add-client ... - добавить клиента",
-    );
+    const inbounds = await getInbounds();
+    const clients = await getAllClientsWithStatus();
+    printSummary(clients, inbounds);
+    await saveReport(clients, inbounds);
+    console.log("\n✅ Готово.");
   } catch (err) {
     console.error("❌ Ошибка:", err.message);
   }

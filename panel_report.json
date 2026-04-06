@@ -1,0 +1,377 @@
+{
+  "timestamp": "2026-04-06T20:58:44.482Z",
+  "summary": {
+    "totalInbounds": 21,
+    "totalClients": 13,
+    "onlineClients": 4,
+    "offlineClients": 9,
+    "totalTrafficUsedGB": "258.85"
+  },
+  "inbounds": [
+    {
+      "id": 5,
+      "tag": "inbound-19007",
+      "port": 19007,
+      "protocol": "vless",
+      "enable": true,
+      "clientsCount": 3
+    },
+    {
+      "id": 6,
+      "tag": "inbound-8181",
+      "port": 8181,
+      "protocol": "tunnel",
+      "enable": true,
+      "clientsCount": 0
+    },
+    {
+      "id": 8,
+      "tag": "inbound-51005",
+      "port": 51005,
+      "protocol": "vless",
+      "enable": true,
+      "clientsCount": 1
+    },
+    {
+      "id": 15,
+      "tag": "inbound-8282",
+      "port": 8282,
+      "protocol": "tunnel",
+      "enable": true,
+      "clientsCount": 0
+    },
+    {
+      "id": 16,
+      "tag": "inbound-59659",
+      "port": 59659,
+      "protocol": "vless",
+      "enable": true,
+      "clientsCount": 1
+    },
+    {
+      "id": 22,
+      "tag": "inbound-8383",
+      "port": 8383,
+      "protocol": "tunnel",
+      "enable": true,
+      "clientsCount": 0
+    },
+    {
+      "id": 23,
+      "tag": "inbound-30491",
+      "port": 30491,
+      "protocol": "vless",
+      "enable": true,
+      "clientsCount": 1
+    },
+    {
+      "id": 24,
+      "tag": "inbound-8484",
+      "port": 8484,
+      "protocol": "tunnel",
+      "enable": true,
+      "clientsCount": 0
+    },
+    {
+      "id": 25,
+      "tag": "inbound-55011",
+      "port": 55011,
+      "protocol": "vless",
+      "enable": true,
+      "clientsCount": 1
+    },
+    {
+      "id": 26,
+      "tag": "inbound-8585",
+      "port": 8585,
+      "protocol": "tunnel",
+      "enable": true,
+      "clientsCount": 0
+    },
+    {
+      "id": 27,
+      "tag": "inbound-57103",
+      "port": 57103,
+      "protocol": "vless",
+      "enable": true,
+      "clientsCount": 1
+    },
+    {
+      "id": 28,
+      "tag": "inbound-8686",
+      "port": 8686,
+      "protocol": "tunnel",
+      "enable": true,
+      "clientsCount": 0
+    },
+    {
+      "id": 29,
+      "tag": "inbound-41748",
+      "port": 41748,
+      "protocol": "vless",
+      "enable": true,
+      "clientsCount": 1
+    },
+    {
+      "id": 30,
+      "tag": "inbound-8787",
+      "port": 8787,
+      "protocol": "tunnel",
+      "enable": true,
+      "clientsCount": 0
+    },
+    {
+      "id": 31,
+      "tag": "inbound-24589",
+      "port": 24589,
+      "protocol": "vless",
+      "enable": true,
+      "clientsCount": 1
+    },
+    {
+      "id": 32,
+      "tag": "inbound-7171",
+      "port": 7171,
+      "protocol": "tunnel",
+      "enable": true,
+      "clientsCount": 0
+    },
+    {
+      "id": 33,
+      "tag": "inbound-39251",
+      "port": 39251,
+      "protocol": "vless",
+      "enable": true,
+      "clientsCount": 1
+    },
+    {
+      "id": 34,
+      "tag": "inbound-7272",
+      "port": 7272,
+      "protocol": "tunnel",
+      "enable": true,
+      "clientsCount": 0
+    },
+    {
+      "id": 35,
+      "tag": "inbound-48794",
+      "port": 48794,
+      "protocol": "vless",
+      "enable": true,
+      "clientsCount": 1
+    },
+    {
+      "id": 36,
+      "tag": "inbound-7373",
+      "port": 7373,
+      "protocol": "tunnel",
+      "enable": true,
+      "clientsCount": 0
+    },
+    {
+      "id": 37,
+      "tag": "inbound-34929",
+      "port": 34929,
+      "protocol": "vless",
+      "enable": true,
+      "clientsCount": 1
+    }
+  ],
+  "clients": [
+    {
+      "email": "dastamlf",
+      "inboundId": 5,
+      "inboundTag": "inbound-19007",
+      "protocol": "vless",
+      "port": 19007,
+      "enable": true,
+      "totalGB": 0,
+      "usedGB": 246.470691506,
+      "usedBytes": 246470691506,
+      "expiryTime": 0,
+      "lastOnline": 1775509116027,
+      "isOnline": true,
+      "statusText": "активен 8 сек назад"
+    },
+    {
+      "email": "openwrt_01",
+      "inboundId": 5,
+      "inboundTag": "inbound-19007",
+      "protocol": "vless",
+      "port": 19007,
+      "enable": true,
+      "totalGB": 0,
+      "usedGB": 10.8084579,
+      "usedBytes": 10808457900,
+      "expiryTime": 0,
+      "lastOnline": 1775509116027,
+      "isOnline": true,
+      "statusText": "активен 8 сек назад"
+    },
+    {
+      "email": "ramazan-rostov",
+      "inboundId": 5,
+      "inboundTag": "inbound-19007",
+      "protocol": "vless",
+      "port": 19007,
+      "enable": true,
+      "totalGB": 0,
+      "usedGB": 0.153818248,
+      "usedBytes": 153818248,
+      "expiryTime": 0,
+      "lastOnline": 1774210016031,
+      "isOnline": false,
+      "statusText": "последний раз 22.03.2026, 23:06:56"
+    },
+    {
+      "email": "14130wa3",
+      "inboundId": 8,
+      "inboundTag": "inbound-51005",
+      "protocol": "vless",
+      "port": 51005,
+      "enable": true,
+      "totalGB": 0,
+      "usedGB": 0.912393179,
+      "usedBytes": 912393179,
+      "expiryTime": 0,
+      "lastOnline": 1775509116027,
+      "isOnline": true,
+      "statusText": "активен 8 сек назад"
+    },
+    {
+      "email": "rout-internal-02",
+      "inboundId": 16,
+      "inboundTag": "inbound-59659",
+      "protocol": "vless",
+      "port": 59659,
+      "enable": true,
+      "totalGB": 0,
+      "usedGB": 0.483291496,
+      "usedBytes": 483291496,
+      "expiryTime": 0,
+      "lastOnline": 1774987976036,
+      "isOnline": false,
+      "statusText": "последний раз 31.03.2026, 23:12:56"
+    },
+    {
+      "email": "dqkt9qrl",
+      "inboundId": 23,
+      "inboundTag": "inbound-30491",
+      "protocol": "vless",
+      "port": 30491,
+      "enable": true,
+      "totalGB": 0,
+      "usedGB": 0.002835543,
+      "usedBytes": 2835543,
+      "expiryTime": 0,
+      "lastOnline": 1775039516029,
+      "isOnline": false,
+      "statusText": "последний раз 01.04.2026, 13:31:56"
+    },
+    {
+      "email": "openwrt_03",
+      "inboundId": 25,
+      "inboundTag": "inbound-55011",
+      "protocol": "vless",
+      "port": 55011,
+      "enable": true,
+      "totalGB": 0,
+      "usedGB": 0.000031598,
+      "usedBytes": 31598,
+      "expiryTime": 0,
+      "lastOnline": 1775045676028,
+      "isOnline": false,
+      "statusText": "последний раз 01.04.2026, 15:14:36"
+    },
+    {
+      "email": "openwrt_4",
+      "inboundId": 27,
+      "inboundTag": "inbound-57103",
+      "protocol": "vless",
+      "port": 57103,
+      "enable": true,
+      "totalGB": 0,
+      "usedGB": 0.007358514,
+      "usedBytes": 7358514,
+      "expiryTime": 0,
+      "lastOnline": 1775509116027,
+      "isOnline": true,
+      "statusText": "активен 8 сек назад"
+    },
+    {
+      "email": "9ks41u3i",
+      "inboundId": 29,
+      "inboundTag": "inbound-41748",
+      "protocol": "vless",
+      "port": 41748,
+      "enable": true,
+      "totalGB": 0,
+      "usedGB": 0.003176533,
+      "usedBytes": 3176533,
+      "expiryTime": 0,
+      "lastOnline": 1775111506058,
+      "isOnline": false,
+      "statusText": "последний раз 02.04.2026, 09:31:46"
+    },
+    {
+      "email": "openwrt_06",
+      "inboundId": 31,
+      "inboundTag": "inbound-24589",
+      "protocol": "vless",
+      "port": 24589,
+      "enable": true,
+      "totalGB": 0,
+      "usedGB": 0.000113066,
+      "usedBytes": 113066,
+      "expiryTime": 0,
+      "lastOnline": 1775119866042,
+      "isOnline": false,
+      "statusText": "последний раз 02.04.2026, 11:51:06"
+    },
+    {
+      "email": "Openwrt_07",
+      "inboundId": 33,
+      "inboundTag": "inbound-39251",
+      "protocol": "vless",
+      "port": 39251,
+      "enable": true,
+      "totalGB": 0,
+      "usedGB": 0.001228059,
+      "usedBytes": 1228059,
+      "expiryTime": 0,
+      "lastOnline": 1775372996033,
+      "isOnline": false,
+      "statusText": "последний раз 05.04.2026, 10:09:56"
+    },
+    {
+      "email": "Openwrt_08",
+      "inboundId": 35,
+      "inboundTag": "inbound-48794",
+      "protocol": "vless",
+      "port": 48794,
+      "enable": true,
+      "totalGB": 0,
+      "usedGB": 0.001021205,
+      "usedBytes": 1021205,
+      "expiryTime": 0,
+      "lastOnline": 1775387926039,
+      "isOnline": false,
+      "statusText": "последний раз 05.04.2026, 14:18:46"
+    },
+    {
+      "email": "Openwrt_09",
+      "inboundId": 37,
+      "inboundTag": "inbound-34929",
+      "protocol": "vless",
+      "port": 34929,
+      "enable": true,
+      "totalGB": 0,
+      "usedGB": 0.001293093,
+      "usedBytes": 1293093,
+      "expiryTime": 0,
+      "lastOnline": 1775489126022,
+      "isOnline": false,
+      "statusText": "последний раз 06.04.2026, 18:25:26"
+    }
+  ]
+}
