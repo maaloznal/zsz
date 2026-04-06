@@ -1,0 +1,622 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>VLESS Мониторинг с 3X UI интеграцией</title>
+    <style>
+        * { box-sizing: border-box; }
+        body { 
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            margin: 0; padding: 20px; 
+            min-height: 100vh;
+        }
+        .container { max-width: 1400px; margin: 0 auto; }
+        .header { text-align: center; color: white; margin-bottom: 30px; }
+        .header h1 { font-size: 2.5rem; margin-bottom: 10px; text-shadow: 2px 2px 4px rgba(0,0,0,0.3); }
+        .header p { opacity: 0.9; font-size: 1.1rem; }
+        .card { 
+            background: white; 
+            border-radius: 1rem; 
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1); 
+            padding: 1.5rem; 
+            margin-bottom: 2rem; 
+        }
+        .card h3 { color: #333; margin-bottom: 1rem; display: flex; align-items: center; gap: 10px; }
+        .flex-row { display: flex; flex-wrap: wrap; gap: 1rem; align-items: flex-end; }
+        .form-group { flex: 1; min-width: 250px; }
+        label { display: block; font-weight: 600; margin-bottom: 0.5rem; color: #374151; }
+        input, select, button, textarea { 
+            padding: 0.75rem 1rem; 
+            border-radius: 0.5rem; 
+            border: 2px solid #e5e7eb; 
+            font-size: 0.95rem; 
+            transition: all 0.3s ease;
+        }
+        input:focus, textarea:focus { 
+            outline: none; 
+            border-color: #667eea; 
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1); 
+        }
+        input { width: 100%; background: #f9fafb; }
+        textarea { width: 100%; min-height: 80px; font-family: 'Courier New', monospace; resize: vertical; }
+        button { 
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); 
+            color: white; 
+            border: none; 
+            cursor: pointer; 
+            font-weight: 600; 
+            transition: all 0.3s ease; 
+        }
+        button:hover { transform: translateY(-2px); box-shadow: 0 5px 15px rgba(102, 126, 234, 0.3); }
+        button.secondary { background: linear-gradient(135deg, #6b7280 0%, #4b5563 100%); }
+        button.danger { background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%); }
+        button.success { background: linear-gradient(135deg, #10b981 0%, #059669 100%); }
+        .stats-grid { 
+            display: grid; 
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); 
+            gap: 1rem; 
+            margin-bottom: 2rem; 
+        }
+        .stat-card { 
+            background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%); 
+            padding: 1.5rem; 
+            border-radius: 0.75rem; 
+            text-align: center; 
+            border: 2px solid #e2e8f0;
+        }
+        .stat-card.success { 
+            background: linear-gradient(135deg, #d1fae5 0%, #a7f3d0 100%); 
+            border-color: #10b981; 
+        }
+        .stat-card.warning { 
+            background: linear-gradient(135deg, #fed7aa 0%, #fdba74 100%); 
+            border-color: #f59e0b; 
+        }
+        .stat-card.danger { 
+            background: linear-gradient(135deg, #fee2e2 0%, #fecaca 100%); 
+            border-color: #ef4444; 
+        }
+        .stat-number { font-size: 2rem; font-weight: bold; color: #1f2937; }
+        .stat-label { color: #6b7280; font-size: 0.9rem; margin-top: 0.5rem; }
+        table { width: 100%; border-collapse: collapse; }
+        th, td { text-align: left; padding: 0.75rem; border-bottom: 1px solid #e5e7eb; vertical-align: middle; }
+        th { background: #f9fafb; font-weight: 600; color: #374151; }
+        .status-badge { 
+            display: inline-flex; 
+            align-items: center; 
+            gap: 6px; 
+            padding: 0.25rem 0.75rem; 
+            border-radius: 9999px; 
+            font-size: 0.85rem; 
+            font-weight: 600; 
+        }
+        .status-alive { 
+            background: #d1fae5; 
+            color: #065f46; 
+        }
+        .status-dead { 
+            background: #fee2e2; 
+            color: #991b1b; 
+        }
+        .status-checking { 
+            background: #fed7aa; 
+            color: #92400e; 
+        }
+        .status-indicator { 
+            width: 8px; 
+            height: 8px; 
+            border-radius: 50%; 
+            background: currentColor; 
+        }
+        .status-checking .status-indicator { 
+            animation: pulse 1.5s infinite; 
+        }
+        @keyframes pulse { 
+            0%, 100% { opacity: 1; } 
+            50% { opacity: 0.5; } 
+        }
+        .btn-icon { 
+            background: none; 
+            border: none; 
+            font-size: 1.2rem; 
+            cursor: pointer; 
+            padding: 0.25rem; 
+            color: #6b7280; 
+            border-radius: 0.25rem;
+            transition: all 0.2s ease;
+        }
+        .btn-icon:hover { 
+            color: #dc2626; 
+            background: #fee2e2; 
+        }
+        .btn-icon.check:hover { 
+            color: #059669; 
+            background: #d1fae5; 
+        }
+        .interval-slider { 
+            display: flex; 
+            align-items: center; 
+            gap: 1rem; 
+            flex-wrap: wrap; 
+            margin-top: 1rem; 
+        }
+        input[type="range"] { 
+            width: 200px; 
+        }
+        .badge { 
+            background: #e5e7eb; 
+            padding: 0.25rem 0.5rem; 
+            border-radius: 9999px; 
+            font-size: 0.75rem; 
+            font-family: monospace; 
+        }
+        .clients-info { 
+            font-size: 0.8rem; 
+            color: #6b7280; 
+            margin-top: 0.25rem; 
+        }
+        .server-status {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: white;
+            padding: 0.75rem 1rem;
+            border-radius: 0.5rem;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            z-index: 1000;
+        }
+        .server-status.connected {
+            border-left: 4px solid #10b981;
+        }
+        .server-status.disconnected {
+            border-left: 4px solid #ef4444;
+        }
+        .empty-state {
+            text-align: center;
+            padding: 3rem;
+            color: #6b7280;
+        }
+        .empty-state h4 {
+            color: #374151;
+            margin-bottom: 1rem;
+        }
+        @media (max-width: 768px) {
+            .container { padding: 10px; }
+            .header h1 { font-size: 2rem; }
+            .stats-grid { grid-template-columns: 1fr; }
+            .flex-row { flex-direction: column; }
+            .form-group { min-width: 100%; }
+            table { font-size: 0.9rem; }
+            th, td { padding: 0.5rem; }
+        }
+    </style>
+</head>
+<body>
+    <div class="server-status" id="serverStatus">
+        <span class="status-indicator"></span>
+        <span id="serverStatusText">Проверка соединения...</span>
+    </div>
+
+    <div class="container">
+        <div class="header">
+            <h1>🔗 VLESS Мониторинг</h1>
+            <p>Интеграция с 3X UI панелью для точной проверки работоспособности</p>
+        </div>
+
+        <!-- Статистика 3X UI -->
+        <div class="card">
+            <h3>📊 Статистика 3X UI панели</h3>
+            <div class="stats-grid" id="statsGrid">
+                <div class="stat-card">
+                    <div class="stat-number" id="totalInbounds">-</div>
+                    <div class="stat-label">Всего inbound'ов</div>
+                </div>
+                <div class="stat-card success">
+                    <div class="stat-number" id="activeInbounds">-</div>
+                    <div class="stat-label">Активных inbound'ов</div>
+                </div>
+                <div class="stat-card warning">
+                    <div class="stat-number" id="totalClients">-</div>
+                    <div class="stat-label">Всего клиентов</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number" id="lastUpdate">-</div>
+                    <div class="stat-label">Последнее обновление</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Добавление конфига -->
+        <div class="card">
+            <h3>➕ Добавить VLESS конфиг</h3>
+            <div class="flex-row">
+                <div class="form-group" style="flex:2">
+                    <label>VLESS ссылка</label>
+                    <textarea id="vlessInput" placeholder="vless://...@ip:port?...#name"></textarea>
+                </div>
+                <div class="form-group">
+                    <label>Кастомное имя (опционально)</label>
+                    <input type="text" id="customName" placeholder="оставьте пустым для авто">
+                </div>
+                <div>
+                    <button id="addBtn">➕ Добавить</button>
+                </div>
+            </div>
+            <div class="interval-slider">
+                <span>⏱️ Интервал авто-проверки:</span>
+                <input type="range" id="intervalRange" min="5" max="120" step="5" value="15">
+                <span id="intervalValue">15</span> минут
+                <button id="applyIntervalBtn" class="secondary">Применить</button>
+                <button id="runOnceBtn" class="success">▶️ Проверить все сейчас</button>
+                <button id="refreshStatsBtn" class="secondary">🔄 Обновить статистику</button>
+            </div>
+        </div>
+
+        <!-- Список конфигов -->
+        <div class="card">
+            <h3>📋 Список конфигов</h3>
+            <div style="overflow-x: auto;">
+                <table id="configsTable">
+                    <thead>
+                        <tr>
+                            <th>Имя</th>
+                            <th>Хост:порт</th>
+                            <th>Статус</th>
+                            <th>Клиенты</th>
+                            <th>Inbound</th>
+                            <th>Последняя проверка</th>
+                            <th>Действия</th>
+                        </tr>
+                    </thead>
+                    <tbody id="configsBody">
+                        <tr>
+                            <td colspan="7" class="empty-state">
+                                <h4>Нет конфигов</h4>
+                                <p>Добавьте первый VLESS конфиг для начала мониторинга</p>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // --- Конфигурация ---
+        const API_BASE = ''; // Относительный путь, т.к. фронтенд на том же сервере
+        
+        // --- Глобальные переменные ---
+        let configs = [];
+        let serverStats = null;
+        let intervalId = null;
+        let currentIntervalMinutes = 15;
+
+        // --- Инициализация ---
+        document.addEventListener('DOMContentLoaded', () => {
+            loadConfigs();
+            loadServerStats();
+            setupEventListeners();
+            startAutoCheck(currentIntervalMinutes);
+            updateServerStatus();
+        });
+
+        // --- Управление конфигами ---
+        function saveConfigs() {
+            localStorage.setItem('vless_configs', JSON.stringify(configs));
+        }
+
+        function loadConfigs() {
+            const raw = localStorage.getItem('vless_configs');
+            if (raw) {
+                configs = JSON.parse(raw);
+            }
+            renderTable();
+        }
+
+        function parseVlessUrl(vlessUrl) {
+            try {
+                const match = vlessUrl.match(/vless:\/\/[^@]+@([^:]+):(\d+)(\?.*)?#(.+)$/);
+                if (!match) return null;
+                return {
+                    host: match[1],
+                    port: parseInt(match[2]),
+                    name: decodeURIComponent(match[4]),
+                    raw: vlessUrl
+                };
+            } catch(e) { 
+                return null; 
+            }
+        }
+
+        function addConfig(vlessUrl, customName = null) {
+            const parsed = parseVlessUrl(vlessUrl);
+            if (!parsed) {
+                showNotification('Неверный формат VLESS ссылки', 'error');
+                return false;
+            }
+            
+            if (configs.some(c => c.rawVless === vlessUrl)) {
+                showNotification('Такой конфиг уже добавлен', 'warning');
+                return false;
+            }
+            
+            configs.push({
+                id: Date.now() + Math.random(),
+                rawVless: vlessUrl,
+                name: customName || parsed.name,
+                host: parsed.host,
+                port: parsed.port,
+                lastStatus: null,
+                lastCheckTime: null,
+                inboundInfo: null
+            });
+            
+            saveConfigs();
+            renderTable();
+            showNotification('Конфиг добавлен', 'success');
+            
+            // Сразу проверяем новый конфиг
+            checkSingleConfigById(configs[configs.length - 1].id);
+            return true;
+        }
+
+        function deleteConfig(id) {
+            if (confirm('Удалить этот конфиг?')) {
+                configs = configs.filter(c => c.id !== id);
+                saveConfigs();
+                renderTable();
+                showNotification('Конфиг удален', 'success');
+            }
+        }
+
+        // --- API функции ---
+        async function checkSingleConfig(config) {
+            const row = document.querySelector(`tr[data-id='${config.id}']`);
+            const statusCell = row?.querySelector('.status-badge');
+            
+            if (statusCell) {
+                statusCell.innerHTML = '<span class="status-indicator"></span>проверка...';
+                statusCell.className = 'status-badge status-checking';
+            }
+
+            try {
+                const response = await fetch(`${API_BASE}/api/check`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ vless: config.rawVless })
+                });
+                
+                const data = await response.json();
+                
+                if (data.ok) {
+                    config.lastStatus = data.alive;
+                    config.lastCheckTime = new Date().toLocaleString();
+                    config.inboundInfo = data.inbound;
+                    config.reason = data.reason;
+                } else {
+                    throw new Error(data.error);
+                }
+            } catch (error) {
+                console.error('Check error:', error);
+                config.lastStatus = false;
+                config.lastCheckTime = `Ошибка: ${error.message}`;
+                config.inboundInfo = null;
+                config.reason = 'Connection error';
+            }
+
+            saveConfigs();
+            renderTable();
+            return config.lastStatus;
+        }
+
+        async function checkAllConfigs() {
+            for (let cfg of configs) {
+                await checkSingleConfig(cfg);
+                await new Promise(r => setTimeout(r, 500)); // Небольшая задержка
+            }
+            showNotification('Все конфиги проверены', 'success');
+        }
+
+        async function loadServerStats() {
+            try {
+                const response = await fetch(`${API_BASE}/api/stats`);
+                const data = await response.json();
+                
+                if (data.ok) {
+                    serverStats = data;
+                    updateStatsDisplay();
+                }
+            } catch (error) {
+                console.error('Stats error:', error);
+                updateServerStatus(false);
+            }
+        }
+
+        function updateStatsDisplay() {
+            if (!serverStats) return;
+            
+            const summary = serverStats.summary;
+            document.getElementById('totalInbounds').textContent = summary.totalInbounds || 0;
+            document.getElementById('activeInbounds').textContent = summary.activeInbounds || 0;
+            document.getElementById('totalClients').textContent = summary.totalClients || 0;
+            
+            const lastUpdate = summary.lastUpdate ? new Date(summary.lastUpdate) : new Date();
+            document.getElementById('lastUpdate').textContent = lastUpdate.toLocaleTimeString();
+        }
+
+        async function updateServerStatus(forceStatus = null) {
+            const statusEl = document.getElementById('serverStatus');
+            const statusTextEl = document.getElementById('serverStatusText');
+            
+            try {
+                if (forceStatus !== null) {
+                    statusEl.className = `server-status ${forceStatus ? 'connected' : 'disconnected'}`;
+                    statusTextEl.textContent = forceStatus ? 'Подключено к 3X UI' : 'Ошибка подключения';
+                    return;
+                }
+                
+                const response = await fetch(`${API_BASE}/api/stats`, { method: 'HEAD' });
+                statusEl.className = 'server-status connected';
+                statusTextEl.textContent = 'Подключено к 3X UI';
+            } catch (error) {
+                statusEl.className = 'server-status disconnected';
+                statusTextEl.textContent = 'Ошибка подключения';
+            }
+        }
+
+        // --- UI функции ---
+        function renderTable() {
+            const tbody = document.getElementById('configsBody');
+            
+            if (!configs.length) {
+                tbody.innerHTML = `
+                    <tr>
+                        <td colspan="7" class="empty-state">
+                            <h4>Нет конфигов</h4>
+                            <p>Добавьте первый VLESS конфиг для начала мониторинга</p>
+                        </td>
+                    </tr>
+                `;
+                return;
+            }
+
+            tbody.innerHTML = configs.map(cfg => `
+                <tr data-id="${cfg.id}">
+                    <td><strong>${escapeHtml(cfg.name)}</strong></td>
+                    <td><code>${cfg.host}:${cfg.port}</code></td>
+                    <td>
+                        <div class="status-badge ${cfg.lastStatus === true ? 'status-alive' : cfg.lastStatus === false ? 'status-dead' : ''}">
+                            ${cfg.lastStatus === undefined ? '⏳ не проверялся' :
+                              cfg.lastStatus === true ? '<span class="status-indicator"></span>🟢 Работает' :
+                              '<span class="status-indicator"></span>🔴 Не работает'}
+                        </div>
+                        ${cfg.reason ? `<div class="clients-info">${cfg.reason}</div>` : ''}
+                    </td>
+                    <td>
+                        ${cfg.inboundInfo ? 
+                            `<span class="badge">${cfg.inboundInfo.clients} клиентов</span>` : 
+                            '-'}
+                    </td>
+                    <td>
+                        ${cfg.inboundInfo ? 
+                            `<code>${cfg.inboundInfo.tag}</code><br><small>ID: ${cfg.inboundInfo.id}</small>` : 
+                            '-'}
+                    </td>
+                    <td style="font-size:0.8rem">${cfg.lastCheckTime || '—'}</td>
+                    <td>
+                        <button class="btn-icon check" onclick="checkSingleConfigById(${cfg.id})" title="Проверить">🔄</button>
+                        <button class="btn-icon" onclick="deleteConfig(${cfg.id})" title="Удалить">🗑️</button>
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        function escapeHtml(str) { 
+            return str.replace(/[&<>"']/g, function(m) {
+                const map = {'&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'};
+                return map[m];
+            });
+        }
+
+        function showNotification(message, type = 'info') {
+            // Создаем уведомление
+            const notification = document.createElement('div');
+            notification.style.cssText = `
+                position: fixed; top: 80px; right: 20px; z-index: 1001;
+                padding: 1rem 1.5rem; border-radius: 0.5rem; color: white;
+                font-weight: 500; box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+                transform: translateX(100%); transition: transform 0.3s ease;
+            `;
+            
+            const colors = {
+                success: 'linear-gradient(135deg, #10b981, #059669)',
+                error: 'linear-gradient(135deg, #ef4444, #dc2626)',
+                warning: 'linear-gradient(135deg, #f59e0b, #d97706)',
+                info: 'linear-gradient(135deg, #3b82f6, #2563eb)'
+            };
+            
+            notification.style.background = colors[type] || colors.info;
+            notification.textContent = message;
+            
+            document.body.appendChild(notification);
+            
+            setTimeout(() => notification.style.transform = 'translateX(0)', 100);
+            setTimeout(() => {
+                notification.style.transform = 'translateX(100%)';
+                setTimeout(() => notification.remove(), 300);
+            }, 3000);
+        }
+
+        // --- Авто-проверка ---
+        function startAutoCheck(minutes) {
+            if (intervalId) clearInterval(intervalId);
+            if (minutes > 0 && configs.length > 0) {
+                intervalId = setInterval(() => {
+                    console.log(`Автопроверка каждые ${minutes} минут`);
+                    checkAllConfigs();
+                    loadServerStats();
+                }, minutes * 60 * 1000);
+            }
+        }
+
+        function setIntervalFromSlider() {
+            const val = parseInt(document.getElementById('intervalRange').value);
+            document.getElementById('intervalValue').textContent = val;
+            currentIntervalMinutes = val;
+            startAutoCheck(currentIntervalMinutes);
+            localStorage.setItem('vless_interval', currentIntervalMinutes);
+            showNotification(`Интервал изменен на ${val} минут`, 'success');
+        }
+
+        // --- Event Listeners ---
+        function setupEventListeners() {
+            document.getElementById('addBtn').onclick = () => {
+                const vlessUrl = document.getElementById('vlessInput').value.trim();
+                const customName = document.getElementById('customName').value.trim();
+                if (vlessUrl) {
+                    addConfig(vlessUrl, customName || null);
+                    document.getElementById('vlessInput').value = '';
+                    document.getElementById('customName').value = '';
+                } else {
+                    showNotification('Введите VLESS ссылку', 'error');
+                }
+            };
+
+            document.getElementById('applyIntervalBtn').onclick = setIntervalFromSlider;
+            document.getElementById('runOnceBtn').onclick = () => checkAllConfigs();
+            document.getElementById('refreshStatsBtn').onclick = () => {
+                loadServerStats();
+                showNotification('Статистика обновлена', 'success');
+            };
+
+            // Загрузка сохраненного интервала
+            const savedInterval = localStorage.getItem('vless_interval');
+            if (savedInterval) {
+                document.getElementById('intervalRange').value = savedInterval;
+                document.getElementById('intervalValue').textContent = savedInterval;
+                currentIntervalMinutes = parseInt(savedInterval);
+            }
+
+            // Периодическое обновление статистики сервера
+            setInterval(() => {
+                loadServerStats();
+                updateServerStatus();
+            }, 30000); // Каждые 30 секунд
+        }
+
+        // --- Глобальные функции для onclick ---
+        window.checkSingleConfigById = async function(id) {
+            const cfg = configs.find(c => c.id === id);
+            if (cfg) await checkSingleConfig(cfg);
+        };
+
+        // Автообновление статистики при загрузке
+        setInterval(updateStatsDisplay, 60000); // Каждую минуту
+    </script>
+</body>
+</html>
