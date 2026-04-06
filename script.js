@@ -3,12 +3,7 @@ class VLESSMonitor {
         this.configs = [];
         this.settings = {
             checkInterval: 10,
-            autoCheck: true,
-            use3XUI: false,
-            xuiUrl: '',
-            xuiUsername: 'admin',
-            xuiPassword: '',
-            xuiToken: null
+            autoCheck: true
         };
         this.checkIntervalId = null;
         this.init();
@@ -32,12 +27,6 @@ class VLESSMonitor {
         // Настройки
         document.getElementById('saveSettings').addEventListener('click', () => {
             this.saveSettings();
-        });
-
-        // Переключатель 3X UI
-        document.getElementById('use3XUI').addEventListener('change', (e) => {
-            const xuiSettings = document.getElementById('xuiSettings');
-            xuiSettings.style.display = e.target.checked ? 'block' : 'none';
         });
 
         // Кнопки управления
@@ -164,20 +153,10 @@ class VLESSMonitor {
             const startTime = Date.now();
             let isOnline = false;
 
-            if (this.settings.use3XUI && this.settings.xuiUrl && this.settings.xuiToken) {
-                // Используем 3X UI API
-                const result = await this.testConnectionVia3XUI(
-                    this.settings.xuiUrl, 
-                    this.settings.xuiToken, 
-                    config.name
-                );
-                isOnline = result.isOnline;
-                config.traffic = result.traffic;
-            } else {
-                // Используем стандартную проверку
-                isOnline = await this.testConnection(config.host, config.port);
-            }
-
+            // Используем стандартную проверку WebSocket
+            const wsUrl = `wss://${config.host}:${config.port}`;
+            const result = await this.testWebSocketConnection(wsUrl);
+            isOnline = result.isOnline;
             const responseTime = Date.now() - startTime;
             config.status = isOnline ? 'online' : 'offline';
             config.responseTime = isOnline ? responseTime : null;
@@ -251,42 +230,6 @@ class VLESSMonitor {
                 resolve(false);
             }
         });
-    }
-
-    async testConnectionVia3XUI(apiUrl, apiKey, inboundTag) {
-        try {
-            const response = await fetch(`${apiUrl}/api/stats`, {
-                method: 'GET',
-                headers: {
-                    'Authorization': `Bearer ${apiKey}`,
-                    'Content-Type': 'application/json'
-                }
-            });
-
-            if (!response.ok) {
-                throw new Error('API request failed');
-            }
-
-            const stats = await response.json();
-            
-            // Проверяем статистику по inbound
-            const inboundStats = stats.find(s => s.tag === inboundTag || s.link?.includes(inboundTag));
-            
-            if (inboundStats) {
-                return {
-                    isOnline: inboundStats.uplink > 0 || inboundStats.downlink > 0,
-                    traffic: {
-                        uplink: inboundStats.uplink,
-                        downlink: inboundStats.downlink
-                    }
-                };
-            }
-
-            return { isOnline: false, traffic: null };
-        } catch (error) {
-            console.error('3X UI API error:', error);
-            return { isOnline: false, traffic: null };
-        }
     }
 
     async checkAllConfigs() {
@@ -381,7 +324,6 @@ class VLESSMonitor {
     saveSettings() {
         const interval = parseInt(document.getElementById('checkInterval').value);
         const autoCheck = document.getElementById('autoCheck').checked;
-        const use3XUI = document.getElementById('use3XUI').checked;
 
         if (interval < 1 || interval > 60) {
             this.showNotification('Интервал должен быть от 1 до 60 минут', 'error');
@@ -390,64 +332,10 @@ class VLESSMonitor {
 
         this.settings.checkInterval = interval;
         this.settings.autoCheck = autoCheck;
-        this.settings.use3XUI = use3XUI;
-
-        if (use3XUI) {
-            this.settings.xuiUrl = document.getElementById('xuiUrl').value.trim();
-            this.settings.xuiUsername = document.getElementById('xuiUsername').value.trim();
-            this.settings.xuiPassword = document.getElementById('xuiPassword').value;
-
-            // Проверяем подключение к 3X UI
-            this.test3XUIConnection();
-        }
 
         this.saveToStorage();
         this.startAutoCheck();
         this.showNotification('Настройки сохранены', 'success');
-    }
-
-    async test3XUIConnection() {
-        try {
-            const token = await this.get3XUIToken();
-            if (token) {
-                this.settings.xuiToken = token;
-                this.showNotification('Подключение к 3X UI успешно', 'success');
-            } else {
-                this.showNotification('Ошибка подключения к 3X UI', 'error');
-                this.settings.use3XUI = false;
-                document.getElementById('use3XUI').checked = false;
-                document.getElementById('xuiSettings').style.display = 'none';
-            }
-        } catch (error) {
-            this.showNotification('Ошибка подключения к 3X UI: ' + error.message, 'error');
-            this.settings.use3XUI = false;
-            document.getElementById('use3XUI').checked = false;
-            document.getElementById('xuiSettings').style.display = 'none';
-        }
-    }
-
-    async get3XUIToken() {
-        try {
-            const response = await fetch(`${this.settings.xuiUrl}/api/login`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({
-                    username: this.settings.xuiUsername,
-                    password: this.settings.xuiPassword
-                })
-            });
-
-            if (!response.ok) {
-                throw new Error('Неверные данные для входа');
-            }
-
-            const data = await response.json();
-            return data.token || data.session;
-        } catch (error) {
-            throw new Error('Не удалось получить токен: ' + error.message);
-        }
     }
 
     startAutoCheck() {
@@ -645,15 +533,6 @@ class VLESSMonitor {
                 this.settings = { ...this.settings, ...JSON.parse(settingsData) };
                 document.getElementById('checkInterval').value = this.settings.checkInterval;
                 document.getElementById('autoCheck').checked = this.settings.autoCheck;
-                document.getElementById('use3XUI').checked = this.settings.use3XUI;
-                document.getElementById('xuiUrl').value = this.settings.xuiUrl || '';
-                document.getElementById('xuiUsername').value = this.settings.xuiUsername || 'admin';
-                document.getElementById('xuiPassword').value = this.settings.xuiPassword || '';
-                
-                // Показываем настройки 3X UI если включены
-                if (this.settings.use3XUI) {
-                    document.getElementById('xuiSettings').style.display = 'block';
-                }
             }
         } catch (error) {
             console.error('Ошибка загрузки данных:', error);
